@@ -22,7 +22,7 @@ connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
 
-    connection.query("SELECT * FROM products", function (err, res) {
+    var query = connection.query("SELECT * FROM products", function (err, res) {
 
         printStuff(res);
 
@@ -43,36 +43,44 @@ connection.connect(function (err) {
             ])
             .then(function (userInput) {
 
-                var query = connection.query(
-                    "SELECT * FROM products where id=" + userInput.user_choice,
+                // var query = connection.query(
+                //     "SELECT * FROM products where id=" + userInput.user_choice,
+
+                //     function (err, res) {
+                //         console.log(res);
+
+                //         if (res[0].stock_quantity < userInput.user_amount) {
+                //             console.log("Insufficient quantity!");
+                //         }
+                //         else {
+
+                //attempt to but that # of items 
+                //  if there are enough in stock decrement the amount
+                //      else return an error to the user that there aren't enough in stock
+                //  
+                var query1 = connection.query("UPDATE products SET stock_quantity = stock_quantity - "
+                    + userInput.user_amount + " WHERE id =" + userInput.user_choice
+                    + " AND stock_quantity >= " + userInput.user_amount,
 
                     function (err, res) {
                         console.log(res);
 
-                        if (res[0].stock_quantity < userInput.user_amount) {
+                        console.log(query1.results);
+                        console.log(query1.sql);
+                        if (query1.results.affectedRows == 0) {
                             console.log("Insufficient quantity!");
                         }
-                        else {
-
-                            var query1 = connection.query("UPDATE products SET stock_quantity = stock_quantity - "
-                                + userInput.user_amount + " WHERE id =" + userInput.user_choice + " and stock_quantity > 0",
-
-                                function (err, res) {
-                                    console.log(res);
-
-                                }
-
-
-
-                            );
-
-                        }
-
-                    })
+                            
+                    }
+                )
 
             });
 
     });
+    console.log(query.results);
+    console.log(query.sql);
+
+
 });
 
 function bidItem() {
