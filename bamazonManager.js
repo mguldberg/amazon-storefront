@@ -24,6 +24,11 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
+    managerView();
+});
+
+
+function managerView() {
 
     inquirer
         .prompt([
@@ -31,6 +36,7 @@ connection.connect(function (err) {
             // View Low Inventory
             // Add to Inventory
             // Add New Product
+            // Exit
             {
                 type: "list",
                 message: "What would you like to do?",
@@ -39,7 +45,6 @@ connection.connect(function (err) {
             },
         ])
         .then(function (userInput) {
-
             switch (userInput.manager_choice) {
                 case "View Products for Sale":
                     viewProductsForSale();
@@ -57,25 +62,26 @@ connection.connect(function (err) {
                     addNewProduct();
                     break;
 
-                case "Quit":
+                case "Exit":
                     //all done - end the connection to the DB
                     connection.end();
                     break;
 
                 default:
-                    console.log("Error in input list. Please contact your Web Admin for assistance - guldberg@sbcglobal.net.")
+                    console.log("Error in input list. Please contact your Web Admin for assistance - guldberg@sbcglobal.net")
             }
-
         });
 
-
-});
+}
 
 //If a manager selects View Products for Sale, the app should list every available item: the item IDs, names, prices, and quantities.
 function viewProductsForSale() {
     var query = connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
         printStuff(res);
+
+        //make recursive function call to start at main menu again
+        managerView();
     })
 }
 
@@ -85,6 +91,10 @@ function viewLowInventory() {
         if (err) throw err;
         // console.log("query low inventory -----------------------------");
         printStuff(res);
+
+        //make recursive function call to start at main menu again
+        managerView();
+
     });
 }
 
@@ -122,236 +132,107 @@ function addToInventory() {
                     connection.query("SELECT * FROM products where id=" + userInput.product_id, function (err, dbRespAddInvCheck) {
                         if (err) throw err;
 
+                        //display recent added product count to inventory/stock
                         printStuff(dbRespAddInvCheck);
+
+                        //make recursive function call to start at main menu again
+                        managerView();
                     });
                 });
             });
     });
 }
 
-function bidItem() {
-
-    // var rawDumpOfItems = readAndDisplayDb();
-    // console.log ("raw" + rawDumpOfItems);
-    var returnValue = [];
-    connection.query("SELECT * FROM items", function (err, res) {
-
-        printStuff(res);
-
-        var arrayOfItems = [];
-
-        for (i = 0; i < res.length; i++) {
-            arrayOfItems.push(res[i].id + " | " + res[i].item_name);
-        }
-
-        // console.log(arrayOfItems);
-        inquirer
-            .prompt([
-
-                // Here we prompt the user to input what genre that song is in?
-                {
-                    type: "list",
-                    message: "What item do you want to bid on",
-                    choices: arrayOfItems,
-                    name: "item_selection"
-                },
-
-
-            ])
-            .then(function (userInput) {
-                console.log(userInput.item_selection);
-
-                inquirer
-                    .prompt([
-
-                        // Here we prompt the user to input what genre that song is in?
-                        {
-                            type: "list",
-                            message: "What item do you want to bid on",
-                            choices: arrayOfItems,
-                            name: "item_selection"
-                        },
-
-
-                    ])
-                    .then(function (userInput) {
-                        console.log(userInput.item_selection);
-
-
-
-                    });
-
-            });
-
-
-
-    });
-
-
-}
-
-function postItem() {
-
-    inquirer
-        .prompt([
-            // Here we prompt the user which song they want to add to the DB
-            {
-                type: "input",
-                message: "What  the item name?",
-                name: "item_name"
-            },
-            // Here we prompt the user who sang the song that we will add to the DB
-            {
-                type: "input",
-                message: "What is the minimum value of the item?",
-                name: "min_value"
-            },
-            // Here we prompt the user to input what genre that song is in?
-            {
-                type: "list",
-                message: "What category is your item?",
-                choices: ["Appliance", "Household", "Sporting Goods", "Other"],
-                name: "category"
-            },
-            {
-                type: "list",
-                message: "What condition is your item in?",
-                choices: ["Lightly Used", "Used", "New"],
-                name: "item_condition"
-            },
-            // Here we prompt the user who sang the song that we will add to the DB
-            {
-                type: "input",
-                message: "What is the long description of your item?",
-                name: "description"
-            },
-            // Here we ask the user to confirm.
-            {
-                type: "confirm",
-                message: "Are you sure:",
-                name: "confirm",
-                default: false
-            },
-
-        ])
-        .then(function (userInput) {
-
-            if (userInput.confirm) {
-
-                writeDataToMySql(userInput.item_name, userInput.min_value, userInput.category, userInput.item_condition, userInput.description);
-            }
-        });
-
-}
-
-function readAndDisplayDb() {
-    var returnValue = [];
-    connection.query("SELECT * FROM items", function (err, res) {
-        printStuff(res);
-        // console.log(res);
-
-        return res;
-    });
-    // return returnValue;
-}
-
-// function queryDanceSongs() {
-//     var query = connection.query("SELECT * FROM songs WHERE genre='Classic Rock' OR genre='Dance'", function (err, res) {
-//         console.log("query specifc genre: -----------------------------");
-
-//         for (i = 0; i < res.length; i++) {
-//             console.log(res[i].title + " ::" + res[i].artist);
-
-//         }
-
-
-//         console.log(query.sql);
-
-//     });
-
-//     // logs the actual query being run
-// }
-
-
-
-function printStuff(res) {
-    console.log(res);
-    var table = new Table({
-        head: ['Item ID', 'Product Name', 'Department', 'Price', 'Stock Inventory']
-        , colWidths: [10, 45, 40, 8, 15]
-    });
-    for (var i = 0; i < res.length; i++) {
-        table.push([res[i].id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock_quantity]);
-    }
-    console.log(table.toString());
-}
-
-
-
-
 
 //Add New Product, it will allow the manager to add a completely new product to the store.
 function addNewProduct() {
 
-    inquirer
-        .prompt([
-            // Here we prompt the user which song they want to add to the DB
-            {
-                type: "input",
-                message: "What is the product name?",
-                name: "product_name"
-            },
-            // Here we prompt the user who sang the song that we will add to the DB
-            {
-                type: "input",
-                message: "What is the unit price of the product?",
-                name: "price"
-            },
-            // Here we prompt the user to input what genre that song is in?
-            {
-                type: "list",
-                message: "What department does this product belong to?",
-                choices: ["food", "car parts", "office supplies", "Other"],
-                name: "department_name"
-            },
-            // Here we prompt the user who sang the song that we will add to the DB
-            {
-                type: "input",
-                message: "What is quantity of products you want to add?",
-                name: "stock_quantity"
-            },
-            // Here we ask the user to confirm.
-            {
-                type: "confirm",
-                message: "Are you sure:",
-                name: "confirm",
-                default: false
-            },
-        ])
-        .then(function (userInput) {
-            if (userInput.confirm) {
-                console.log("Inserting a new item...\n");
-                connection.query(
-                    "INSERT INTO products SET ?",
-                    {
-                        product_name: userInput.product_name,
-                        department_name: userInput.department_name,
-                        price: userInput.price,
-                        stock_quantity: userInput.stock_quantity
-                    },
-                    function (err, dbRespAddProductCheck) {
-                        if (err) throw err;
+    connection.query("SELECT * FROM departments", function (err, res) {
+       
+        console.log(res);
+        
+        var arrayOfDepartments = [];
 
-                        //display the updated amount by querying the DB
-                        connection.query("SELECT * FROM products where id=" + userInput.product_id, function (err, dbRespAddProductCheck) {
+        for (i = 0; i < res.length; i++) {
+            arrayOfDepartments.push(res[i].department_name);
+        }
+        inquirer
+            .prompt([
+                // Here we prompt the user which song they want to add to the DB
+                {
+                    type: "input",
+                    message: "What is the product name?",
+                    name: "product_name"
+                },
+                // Here we prompt the user who sang the song that we will add to the DB
+                {
+                    type: "input",
+                    message: "What is the unit price of the product?",
+                    name: "price"
+                },
+                // Here we prompt the user to input what genre that song is in?
+                {
+                    type: "list",
+                    message: "What department does this product belong to?",
+                    choices: arrayOfDepartments,
+                    name: "department_name"
+                },
+                // Here we prompt the user who sang the song that we will add to the DB
+                {
+                    type: "input",
+                    message: "What is quantity of products you want to add?",
+                    name: "stock_quantity"
+                },
+                // Here we ask the user to confirm.
+                {
+                    type: "confirm",
+                    message: "Are you sure:",
+                    name: "confirm",
+                    default: false
+                },
+            ])
+            .then(function (userInput) {
+                if (userInput.confirm) {
+                    console.log("Inserting a new item...\n");
+                    connection.query(
+                        "INSERT INTO products SET ?",
+                        {
+                            product_name: userInput.product_name,
+                            department_name: userInput.department_name,
+                            price: userInput.price,
+                            stock_quantity: userInput.stock_quantity
+                        },
+                        function (err, dbRespAddProductCheck) {
                             if (err) throw err;
 
-                            printStuff(dbRespAddProductCheck);
-                        });
-                    }
+                            //display the updated amount by querying the DB
+                            connection.query("SELECT * FROM products where product_name='" + userInput.product_name + "'", function (err, dbRespAddProductCheck) {
+                                if (err) throw err;
 
-                );
-            }
-        });
+                                //display added Product
+                                printStuff(dbRespAddProductCheck);
 
+                                //make recursive function call to start at main menu again
+                                managerView();
+                            });
+                        }
+
+                    );
+                }
+            });
+
+    });
+}
+
+// generic function that prints things leveraging cli-table
+function printStuff(res) {
+    console.log(res);
+    var table = new Table({
+        head: ['Item ID', 'Product Name', 'Department', 'Price', 'Stock Inventory', 'Total Sales ($)', 'Total Sales (#)']
+        , colWidths: [10, 30, 25, 8, 15, 18, 18]
+    });
+    for (var i = 0; i < res.length; i++) {
+        table.push([res[i].id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock_quantity, res[i].total_sales_dollars, res[i].total_sales_count]);
+    }
+    console.log(table.toString());
 }

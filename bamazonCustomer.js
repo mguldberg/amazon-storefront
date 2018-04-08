@@ -25,6 +25,12 @@ connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
 
+    //call main function - function is used to create a recursive
+    //  function call in case user wants to buy more than 1 thing
+    customerView();
+});
+
+function customerView() {
     var query = connection.query("SELECT * FROM products", function (err, dbDumpResp) {
         if (err) throw err;
 
@@ -47,20 +53,23 @@ connection.connect(function (err) {
             ])
             .then(function (userInput) {
 
-                //attempt to but that # of items - should prevent a race condition 
+                //attempt to buy that # of items - should prevent a race condition with quantity check and set in same UPDATE sql 
                 //      where multiple users are trying to buy the same thing at once
-                //  if there are enough in stock decrement the amount
-                //      else return an error to the user that there aren't enough in stock
+                //  if there are enough in stock decrement  decrement the amount AND
+                //        SET total_sales_dollars and total_sales_count
+                //    else return an error to the user that there aren't enough in stock
                 //  
-                var query1 = connection.query("UPDATE products SET stock_quantity = stock_quantity - "
-                    + userInput.user_amount + " WHERE id =" + userInput.user_choice
-                    + " AND stock_quantity >= " + userInput.user_amount,
+                var query1 = connection.query("UPDATE products " +
+                    " SET stock_quantity = stock_quantity - " + userInput.user_amount + "," +
+                    " total_sales_count = total_sales_count + " + userInput.user_amount + "," +
+                    " total_sales_dollars = total_sales_dollars + " + (userInput.user_amount * dbDumpResp[userInput.user_choice - 1].price) +
+                    " WHERE id =" + userInput.user_choice + " AND stock_quantity >= " + userInput.user_amount,
 
                     function (err, updateSqlAttemptToBuyResponse) {
                         if (err) throw err;
 
-                        console.log(updateSqlAttemptToBuyResponse.affectedRows);
-                        console.log(query1.sql);
+                        // console.log(updateSqlAttemptToBuyResponse.affectedRows);
+                        // console.log(query1.sql);
 
                         debugger;
 
@@ -70,29 +79,41 @@ connection.connect(function (err) {
                         if (updateSqlAttemptToBuyResponse.affectedRows == 0) {
                             console.log("Insufficient quantity!");
                         }
-                        else{
+                        else {
                             console.log("Congrats on your purchase.");
-                            console.log("You owe: $" + (userInput.user_amount* dbDumpResp[userInput.user_choice-1].price).toFixed(2));
+                            console.log("You owe: $" + (userInput.user_amount * dbDumpResp[userInput.user_choice - 1].price).toFixed(2));
 
                             // console.log(userInput.user_amount* res[userInput.user_choice-1].price);
                             // console.log(res[userInput.user_choice].price);
                         }
 
-                        //all done - end the connection to the DB
-                        connection.end();
-                    }
-                )
-
+                        inquirer
+                            .prompt([
+                                // Here we ask the user to confirm.
+                                {
+                                    type: "confirm",
+                                    message: "WOuld you like to continue shopping?",
+                                    name: "confirm",
+                                    default: false
+                                },
+                            ])
+                            .then(function (userInput) {
+                                if (userInput.confirm) {
+                                    customerView();
+                                }
+                                else {
+                                    //all done - end the connection to the DB
+                                    connection.end();
+                                }
+                            })
+                    });
             });
-
     });
-
-
-});
-
+}
 
 //print stuff to the screen using cli-table NPM
 function printStuff(res) {
+    console.log(res);
     var table = new Table({
         head: ['Item ID', 'Product Name', 'Department', 'Price']
         , colWidths: [10, 45, 40, 8]

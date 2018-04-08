@@ -1,44 +1,45 @@
+-- Drops the favorite_db if it exists currently --
+DROP DATABASE IF EXISTS bamazon;
+-- Creates the "bamazon" database --
+CREATE DATABASE bamazon;
 
--- Drops the friday_exercise_2-db if it exists currently --
-DROP DATABASE IF EXISTS friday_exercise_2_db_2;
-DROP DATABASE IF EXISTS friday_excercise_2_db;
+-- Make it so all of the following code will affect bamazon --
+USE bamazon;
 
--- Creates the "friday_exercise_2" database --
-CREATE DATABASE friday_exercise_2_db_2;
+-- Creates the table "products" within bamazon --
+-- Populate this database with around 10 different products. (i.e. Insert "mock" data rows into this database and table).
 
--- Make it so all of the following code will affect friday_exercise_2_db --
-USE friday_exercise_2_db_2;
-
-#-- Creates the table "song_table" within friday_exercise_2_db --
-
-CREATE TABLE album_table (
--- Create a numeric column called "id" which automatically increments and cannot be null --
+CREATE TABLE products (
+-- item_id (unique id for each product)
 	id integer auto_increment,
--- Make a string column called "computer_language" which cannot contain null --
-	artist VARCHAR(50),
--- Make a string column called "computer_language" which cannot contain null --
-	album_title VARCHAR(500),
--- Make a string column called "computer_language" which cannot contain null --
-	album_year year,
--- Make a string column called "computer_language" which cannot contain null --
-	total_score decimal (5,2),
--- Make a string column called "computer_language" which cannot contain null --
-	us_score decimal (5,2),
--- Make a string column called "computer_language" which cannot contain null --
-	uk_score decimal (5,2),
--- Make a string column called "computer_language" which cannot contain null --
-	europe_score decimal (5,2),
--- Make a string column called "computer_language" which cannot contain null --
-	row_score decimal (5,2),
+-- product_name (Name of product)
+	product_name VARCHAR(500),
+-- department_name
+	department_name VARCHAR(500),
+-- price (cost to customer)
+	price decimal (5,2),
+-- stock_quantity (how much of the product is available in stores)
+	stock_quantity integer(10),
 -- Set the primary key of the table to id --
 	primary key (id)
 );
 
--- INSERT INTO table_quiz
--- (quiz_data)
--- values 
--- ('quiz data 1'),
--- ('quiz data 2'),
--- ('quiz data 3')
+INSERT INTO products
+(product_name, department_name, price, stock_quantity)
+values 
+('pop tarts', 'food', 3.21, 2000),
+('bananas', 'food', 3.21, 2000),
+('turtles', 'food', 2.45, 2000),
+('brisket', 'food', 3.21, 2000),
+('wipers', 'car parts', 3.21, 2000),
+('cheerios', 'food', 3.21, 2000),
+('tape', 'office supplies', 234.21, 2000),
+('staples', 'office supplies', 4.25, 2000),
+('tires', 'car parts', 144.50, 2000),
+('coffee', 'food', 1.45, 2000);
 
+
+ALTER TABLE products DROP COLUMN total_sales;
+ALTER TABLE products ADD total_sales_dollars decimal (6,2) DEFAULT 0.00;
+ALTER TABLE products ADD total_sales_count integer (7) DEFAULT 0;
 
