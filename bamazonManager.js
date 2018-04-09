@@ -69,6 +69,7 @@ function managerView() {
 
                 default:
                     console.log("Error in input list. Please contact your Web Admin for assistance - guldberg@sbcglobal.net")
+                    connection.end();
             }
         });
 
@@ -149,7 +150,7 @@ function addNewProduct() {
 
     connection.query("SELECT * FROM departments", function (err, res) {
        
-        console.log(res);
+        // console.log(res);
         
         var arrayOfDepartments = [];
 
@@ -158,26 +159,26 @@ function addNewProduct() {
         }
         inquirer
             .prompt([
-                // Here we prompt the user to select song they want to add to the DB********
+                // Here we prompt the manager to input the product name
                 {
                     type: "input",
                     message: "What is the product name?",
                     name: "product_name"
                 },
-                // Here we prompt the user who sang the song that we will add to the DB
+                // Prompt for price of product
                 {
                     type: "input",
                     message: "What is the unit price of the product?",
                     name: "price"
                 },
-                // Here we prompt the user to input what genre that song is in?
+                // Here we prompt the user to input which dept it belongs to
                 {
                     type: "list",
                     message: "What department does this product belong to?",
                     choices: arrayOfDepartments,
                     name: "department_name"
                 },
-                // Here we prompt the user who sang the song that we will add to the DB
+                // Here was ask for th quantity of the products to add to the stock_quantity
                 {
                     type: "input",
                     message: "What is quantity of products you want to add?",
@@ -193,7 +194,9 @@ function addNewProduct() {
             ])
             .then(function (userInput) {
                 if (userInput.confirm) {
-                    console.log("Inserting a new item...\n");
+                    console.log("Inserting a new product...\n");
+
+                    //SQL to add new product to the DB
                     connection.query(
                         "INSERT INTO products SET ?",
                         {
@@ -226,13 +229,13 @@ function addNewProduct() {
 
 // generic function that prints things leveraging cli-table
 function printStuff(res) {
-    console.log(res);
+    // console.log(res);
     var table = new Table({
         head: ['Item ID', 'Product Name', 'Department', 'Price', 'Stock Inventory', 'Total Sales ($)', 'Total Sales (#)']
-        , colWidths: [10, 30, 25, 8, 15, 18, 18]
+        , colWidths: [10, 30, 25, 10, 15, 18, 18]
     });
     for (var i = 0; i < res.length; i++) {
-        table.push([res[i].id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock_quantity, res[i].total_sales_dollars, res[i].total_sales_count]);
+        table.push([res[i].id, res[i].product_name, res[i].department_name, "$"+res[i].price.toFixed(2), res[i].stock_quantity, "$"+res[i].total_sales_dollars.toFixed(2), res[i].total_sales_count]);
     }
     console.log(table.toString());
 }

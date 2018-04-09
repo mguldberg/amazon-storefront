@@ -70,12 +70,12 @@ function supervisorView(){
 // RIGHT JOIN bamazon.departments ON products.department_name = departments.department_name
 // GROUP BY bamazon.departments.department_id;
 function viewProductSales() {
-    var query = connection.query("SELECT departments.department_id, departments.department_name, departments.over_head_costs, " +
-        "(SUM(products.total_sales_dollars) - departments.over_head_costs) AS total_profit, " +
-        "SUM(products.total_sales_dollars) " +
-        "AS total_sales_in_dollars FROM products RIGHT JOIN departments " +
-        "ON products.department_name = departments.department_name " +
-        "GROUP BY departments.department_id", function (err, joinAndGroupByResponse) {
+    var query = connection.query("SELECT d.department_id, d.department_name, d.over_head_costs, " +
+        "(SUM(p.total_sales_dollars) - d.over_head_costs) AS total_profit, " +
+        "SUM(p.total_sales_dollars) " +
+        "AS total_sales_in_dollars FROM products p RIGHT JOIN departments d " +
+        "ON p.department_name = d.department_name " +
+        "GROUP BY d.department_id", function (err, joinAndGroupByResponse) {
             if (err) throw err;
 
             printStuff(joinAndGroupByResponse);
@@ -115,6 +115,7 @@ function addNewDepartment() {
                 console.log(userInput.department_name);
                 console.log(userInput.over_head_costs);
 
+                //insert new dept into DB
                 connection.query(
                     "INSERT INTO departments SET ?",
                     {
@@ -132,6 +133,7 @@ function addNewDepartment() {
 
                             printStuff(dbRespAddDepartmentCheck);
 
+                            //make recursive call to see if user wants to do something more
                             supervisorView();
 
                         });
@@ -145,10 +147,11 @@ function addNewDepartment() {
 
 //print stuff to the screen using cli-table NPM
 function printStuff(res) {
-    console.log(res);
+    // console.log(res);
     var table = new Table({
-        head: ['Item ID', 'Department', 'Over Head', 'Product Sales', 'Total profit']
-        , colWidths: [10, 20, 20, 15, 15]
+        head: ['Item ID', 'Department', 'Over Head', 'Product Sales', 'Total profit'],        
+        colWidths: [10, 20, 20, 15, 15],
+        // syle: { 'text-align': right}
     });
 
     for (var i = 0; i < res.length; i++) {
@@ -158,9 +161,7 @@ function printStuff(res) {
         if (res[i].total_profit == undefined) {
             res[i].total_profit = res[i].total_sales_in_dollars - res[i].over_head_costs;
         }
-
-
-        table.push([res[i].department_id, res[i].department_name, res[i].over_head_costs, res[i].total_sales_in_dollars, res[i].total_profit]);
+        table.push([res[i].department_id, res[i].department_name, "$"+res[i].over_head_costs.toFixed(2), "$"+res[i].total_sales_in_dollars.toFixed(2), "$"+res[i].total_profit.toFixed(2)]);
     }
     console.log(table.toString());
 }

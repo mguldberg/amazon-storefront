@@ -128,13 +128,13 @@ function customerView() {
 
 //print stuff to the screen using cli-table NPM
 function printStuff(res) {
-    console.log(res);
+    // console.log(res);
     var table = new Table({
         head: ['Item ID', 'Product Name', 'Department', 'Price']
-        , colWidths: [10, 45, 40, 8]
+        , colWidths: [10, 45, 40, 10]
     });
     for (var i = 0; i < res.length; i++) {
-        table.push([res[i].id, res[i].product_name, res[i].department_name, res[i].price]);
+        table.push([res[i].id, res[i].product_name, res[i].department_name, "$" + res[i].price.toFixed(2)]);
     }
     console.log(table.toString());
 }

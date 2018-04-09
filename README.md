@@ -14,14 +14,14 @@ bamazonManager.js
   * will allow for adding stock to an existing item
   * will allow to add new item to the DB
   
-  * *NOTE*:  dynamically updates the departments list when adding a department to the DB
-
+  
 bamazonSupervisor.js
   * will display sales by department and if there was profit or loss 
     * uses JOIN, GROUPBY, and alias column that dynamically calculates the profit or loss
   * allows user to add a department
-  
 
-BONUS: all .js allow user to stay in the program to choose to do tasks over and over again until they are ready to Exit.  Leverages recursive calls to do this.
-
-TODO: allow customer to exit gracefully from program, format the columns better to show $
+BONUS: 
+- All .js allow user to stay in the program to choose to do tasks over and over again until they are ready to Exit.
+- Leverages recursive calls to do this.
+- Allow customer to exit gracefully from program, format the columns better to show $.
+- Dynamically updates the departments list (used in bamazonManager.js ) when adding a department to the DB via bamazonSupervisor.js
