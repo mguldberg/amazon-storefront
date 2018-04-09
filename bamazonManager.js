@@ -158,7 +158,7 @@ function addNewProduct() {
         }
         inquirer
             .prompt([
-                // Here we prompt the user which song they want to add to the DB
+                // Here we prompt the user to select song they want to add to the DB********
                 {
                     type: "input",
                     message: "What is the product name?",

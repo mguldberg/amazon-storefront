@@ -9,6 +9,8 @@ var Table = require('cli-table');
 
 var Inspect = require('inspect');
 
+require('console.table');
+
 var connection = mysql.createConnection({
     host: "localhost",
     port: 8889,
@@ -30,15 +32,27 @@ connection.connect(function (err) {
     customerView();
 });
 
+//main function - customerView 
+// will display to the user choice of items from the database 
+// will ask user which item they want to buy and the quantity of that item to purchase
+// IF there enough of the item,
+//    will decrement the database of the item 
+//    SET total_sales_dollars and total_sales_count
+// ELSE it will inform user and not purchase the item
 function customerView() {
+
+    //query bamazon DB for all products 
     var query = connection.query("SELECT * FROM products", function (err, dbDumpResp) {
         if (err) throw err;
 
+        // console.table(dbDumpResp);
+
+        //print data in table form
         printStuff(dbDumpResp);
 
+        //ask user which product they want to purchase and how many
         inquirer
             .prompt([
-                // Here we prompt the user to input what genre that song is in?
                 {
                     type: "input",
                     message: "What product would you like? (id #)",
@@ -53,11 +67,11 @@ function customerView() {
             ])
             .then(function (userInput) {
 
-                //attempt to buy that # of items - should prevent a race condition with quantity check and set in same UPDATE sql 
-                //      where multiple users are trying to buy the same thing at once
-                //  if there are enough in stock decrement  decrement the amount AND
+                // After prompt - attempt to buy that # of items - this single query should prevent a race condition with quantity
+                //      check and set in same UPDATE sql where multiple users are trying to buy the same thing at once
+                //  IF there are enough in stock decrement  decrement the amount AND
                 //        SET total_sales_dollars and total_sales_count
-                //    else return an error to the user that there aren't enough in stock
+                //  ELSE return an error to the user that there aren't enough in stock
                 //  
                 var query1 = connection.query("UPDATE products " +
                     " SET stock_quantity = stock_quantity - " + userInput.user_amount + "," +
@@ -87,18 +101,19 @@ function customerView() {
                             // console.log(res[userInput.user_choice].price);
                         }
 
+                        // Here we ask the user if they want to keep shopping or not.
                         inquirer
                             .prompt([
-                                // Here we ask the user to confirm.
                                 {
                                     type: "confirm",
-                                    message: "WOuld you like to continue shopping?",
+                                    message: "Would you like to continue shopping?",
                                     name: "confirm",
                                     default: false
                                 },
                             ])
                             .then(function (userInput) {
                                 if (userInput.confirm) {
+                                    //if yes - make recursive call to customerView() so user can continue shopping
                                     customerView();
                                 }
                                 else {

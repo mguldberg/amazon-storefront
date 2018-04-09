@@ -21,4 +21,7 @@ bamazonSupervisor.js
     * uses JOIN, GROUPBY, and alias column that dynamically calculates the profit or loss
   * allows user to add a department
   
-  
+
+BONUS: all .js allow user to stay in the program to choose to do tasks over and over again until they are ready to Exit.  Leverages recursive calls to do this.
+
+TODO: allow customer to exit gracefully from program, format the columns better to show $
